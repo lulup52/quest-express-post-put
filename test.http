@@ -1,0 +1,23 @@
+### GET /api/users
+GET http://localhost:3001/api/users
+
+### POST /api/users fail
+POST http://localhost:3001/api/users
+Content-Type: application/json
+
+{
+    "email": "bi7777777777777dul@jftyjftj.ki",
+    "password": "",
+    "name": "dthdrtjdrtjdrtjdtjdjdt"
+}
+
+### POST /api/users
+POST http://localhost:3001/api/users
+Content-Type: application/json
+
+{
+    "email": "bono@flufy.jy",
+    "password": "rutu",
+    "name": "dthdrtjdrtjdrtjdtjdjdt"
+}
+
