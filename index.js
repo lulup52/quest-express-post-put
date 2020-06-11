@@ -1,5 +1,6 @@
 // dotenv loads parameters (port and database config) from .env
 require('dotenv').config();
+const { check, validationResult } = require('express-validator');
 const express = require('express');
 const bodyParser = require('body-parser');
 const connection = require('./db');
@@ -25,35 +26,52 @@ app.get('/api/users', (req, res) => {
   });
 });
 
-app.post('/api/users', (req, res) => {
-  const emailRegex = /[a-z0-9._]+@[a-z0-9-]+\.[a-z]{2,3}/;
-  const { email, password, name } = req.body;
-  if (!email || !password || !name) {
-    return res.status(422).json({
-      error: 'at least one of the required fields is missing'
-    });
-  };
-  if (!emailRegex.test(email)) {
-    return res.status(422).json({
-      error: 'Invalid email',
-    });
-  };
-  if (password.length < 8) {
-    return res.status(422).json({
-      error: 'password to short',
-    });
-  }
-  connection.query('INSERT INTO user SET ?', req.body, (err, results) => {
-    if (err) {
-      res.status(500).json({
-        error: err.message,
-        sql: err.sql,
-      });
-    } else {
-      res.json(results);
+app.post(
+  '/api/users',
+  [check('email').isEmail(),
+    check('password').isLength({ min: 8 })],
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
     }
+    connection.query('INSERT INTO user SET ?', req.body, (err, results) => {
+      if (err) {
+        // MySQL reports a duplicate entry -> 409 Conflict
+        if (err.code === 'ER_DUP_ENTRY') {
+          return res.status(409).json({error: 'Email already exists'})
+        }
+      }
+    });
+  },
+);
+
+
+app.put('/api/users/:id',
+  [check('email').isEmail(),
+    check('password').isLength({ min: 8 })],
+  (req, res) => {
+    const userId = req.params.id;
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
+    connection.query(`SELECT * FROM user where id = ${userId}`,(err, results) => {
+      if (results[0] === undefined) {
+        res.send("u can't modify an inexistant user");
+      } else {
+        connection.query(`UPDATE user SET ? where id = ${userId}`, req.body, (err, results) => {
+          if (err) {
+            return res.status(500).json({
+              error: err.message,
+              sql: err.sql,
+            });
+          }
+          res.status(200).json(results);
+        });
+      }
+    });
   });
-});
 
 app.listen(process.env.PORT, (err) => {
   if (err) {

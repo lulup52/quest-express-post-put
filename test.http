@@ -16,8 +16,17 @@ POST http://localhost:3001/api/users
 Content-Type: application/json
 
 {
-    "email": "bono@flufy.jy",
-    "password": "rutu",
-    "name": "dthdrtjdrtjdrtjdtjdjdt"
+    "email": "test@post19.api",
+    "password": "mdppostapi19",
+    "name": "jesuisle19eme"
 }
 
+### PUT /api/users
+PUT http://localhost:3001/api/users/19
+Content-Type: application/json
+
+{
+    "email": "blablabla@use10.ex",
+    "password": "83hruuuturu7373",
+    "name": "suisjevraiment le 19eme ?"
+}
